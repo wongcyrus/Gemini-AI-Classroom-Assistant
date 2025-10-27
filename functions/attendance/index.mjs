@@ -2,12 +2,12 @@ import { onCall } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeApp } from 'firebase-admin/app';
 import { fromZonedTime } from 'date-fns-tz';
-import { CORS_ORIGINS } from './config.js';
+import { CORS_ORIGINS, FUNCTION_REGION } from './config.js';
 
 initializeApp();
 const db = getFirestore();
 
-export const getAttendanceData = onCall({ cors: CORS_ORIGINS, memory: '512MiB' }, async (request) => {
+export const getAttendanceData = onCall({ cors: CORS_ORIGINS, memory: '512MiB', region: FUNCTION_REGION }, async (request) => {
   const { classId, startTime, endTime } = request.data;
 
   if (!classId || !startTime || !endTime) {
@@ -53,7 +53,7 @@ export const getAttendanceData = onCall({ cors: CORS_ORIGINS, memory: '512MiB' }
       .where('classId', '==', classId)
       .where('timestamp', '>=', chunkStartTime)
       .where('timestamp', '<=', chunkEndTime);
-    
+
     const querySnapshot = await q.get();
 
     querySnapshot.forEach(doc => {
@@ -106,12 +106,12 @@ export const getAttendanceData = onCall({ cors: CORS_ORIGINS, memory: '512MiB' }
       const student = studentList.find(s => s.email === data.email);
       if (student) {
         batch.set(lessonRef, {
-            students: {
-                [student.uid]: {
-                    sharedScreenMinutes: data.totalMinutes,
-                    attendance: data.attendance
-                }
+          students: {
+            [student.uid]: {
+              sharedScreenMinutes: data.totalMinutes,
+              attendance: data.attendance
             }
+          }
         }, { merge: true });
       }
     });

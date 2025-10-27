@@ -19,6 +19,7 @@ import hkiitLogo from './assets/HKIIT_logo_RGB_horizontal.jpg';
 
 const App = () => {
   const [user, setUser] = useState(null);
+  const [unverifiedUser, setUnverifiedUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -49,7 +50,7 @@ const App = () => {
         {user && <MainHeader onLogout={handleLogout} user={user} role={role} />}
         <main className="main-content">
           <Routes>
-            <Route path="/login" element={!user ? <AuthComponent /> : <Navigate to={`/${role}`} />} />
+            <Route path="/login" element={!user ? <AuthComponent unverifiedUser={unverifiedUser} onUnverifiedUser={setUnverifiedUser} /> : <Navigate to={`/${role}`} />} />
             <Route path="/teacher" element={user && role === 'teacher' ? <TeacherView user={user} /> : <Navigate to="/login" />} />
             <Route path="/student" element={user && role === 'student' ? <StudentView user={user} /> : <Navigate to="/login" />} />
             <Route path="/class-management" element={user && role === 'teacher' ? <ClassManagement user={user} /> : <Navigate to="/login" />} />

@@ -8,7 +8,7 @@ import {
 import { auth } from '../firebase-config';
 import './AuthComponent.css';
 
-const AuthComponent = ({ unverifiedUser }) => {
+const AuthComponent = ({ unverifiedUser, onUnverifiedUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -49,9 +49,15 @@ const AuthComponent = ({ unverifiedUser }) => {
 
   const handleLogin = () => {
     signInWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        setMessage('');
-        setError('');
+      .then((userCredential) => {
+        if (!userCredential.user.emailVerified) {
+          setError('Please verify your email before logging in.');
+          setMessage('Click the button to resend the verification email.');
+          onUnverifiedUser(userCredential.user);
+        } else {
+          setMessage('');
+          setError('');
+        }
       })
       .catch((error) => {
         if (error.code === 'auth/invalid-credential') {
