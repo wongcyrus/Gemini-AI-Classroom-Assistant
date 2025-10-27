@@ -165,6 +165,24 @@ For a detailed breakdown of all Cloud Functions, their triggers, and the data mo
 
 The user-facing web application is built with React and Vite. For a detailed breakdown of the main components, please see the [Frontend Components Documentation](./docs/frontend-components.md).
 
+## Renaming the Project
+
+Before you can deploy the project, you need to replace the placeholder project name with your own unique project name. You can do this by running the `rename_project.sh` script from the project root:
+
+```bash
+./rename_project.sh <your-firebase-project-id>
+```
+
+This script will replace the placeholder `gemini-ai-classroom-assistant` with your Firebase project ID in all the necessary files.
+
+### Email Verification
+
+There is a known issue with Firebase not sending email verifications or password reset emails. This is likely due to a misconfiguration in the Firebase project's email templates or the "Email Enumeration Protection" feature.
+
+As a workaround, you can manually verify users using the `admin/scripts/verifyUser.js` script.
+
+To prevent users with unverified emails from logging in, the application will now display a message and a button to resend the verification email.
+
 ## Getting Started (Local Development)
 
 Follow these instructions to set up the project for local development.
@@ -226,7 +244,7 @@ The `/admin` directory contains scripts for managing user roles and AI prompts.
         ```
     *   **To manually verify a user's email:**
         ```bash
-        node scripts/verifyUser.js
+        node scripts/verifyUser.cjs
         ```
     *   **To seed the database with default AI prompts:**
         ```bash

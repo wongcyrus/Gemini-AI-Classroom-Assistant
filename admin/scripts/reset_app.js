@@ -14,7 +14,7 @@ const COLLECTIONS_TO_DELETE = ['classes', 'screenshots', 'students', 'progress',
  */
 function initializeFirebase() {
   try {
-    const bucketName = `ai-invigilator-hkiit.firebasestorage.app`;
+    const bucketName = `gemini-ai-classroom-assistant.firebasestorage.app`;
     const app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       storageBucket: bucketName

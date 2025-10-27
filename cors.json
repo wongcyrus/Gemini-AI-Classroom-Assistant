@@ -3,7 +3,7 @@
   {
     "origin": [
       "https://*.cloudworkstations.dev",
-      "https://ai-invigilator-hkiit.web.app"
+      "https://gemini-ai-classroom-assistant.web.app"
       ],
     "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
     "responseHeader": [
