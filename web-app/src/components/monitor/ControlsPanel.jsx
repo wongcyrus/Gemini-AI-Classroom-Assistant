@@ -5,6 +5,7 @@ import './ControlsPanel.css';
 const ControlsPanel = ({ 
     message, setMessage, handleSendMessage, setShowControls, 
     frameRate, handleFrameRateChange, frameRateOptions, 
+    captureMode, handleCaptureModeChange,
     maxImageSize, handleMaxImageSizeChange, maxImageSizeOptions,
     isCapturing, toggleCapture, isPaused, setIsPaused, 
     setShowPromptModal, notSharingStudents, setShowNotSharingModal, 
@@ -37,6 +38,14 @@ const ControlsPanel = ({
               <label>Max Image Size:</label>
               <select value={maxImageSize} onChange={handleMaxImageSizeChange}>
                 {maxImageSizeOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </div>
+            <div className="control-item">
+              <label>Capture Mode:</label>
+              <select value={captureMode} onChange={handleCaptureModeChange}>
+                <option value="screenshot">Screenshot</option>
+                <option value="webcam">Webcam</option>
+                <option value="combined">Combined</option>
               </select>
             </div>
         </div>

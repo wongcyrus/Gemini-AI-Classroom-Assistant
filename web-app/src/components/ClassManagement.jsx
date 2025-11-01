@@ -23,6 +23,7 @@ const ClassManagement = ({ user }) => {
   const [scheduleEndDate, setScheduleEndDate] = useState('');
   const [timeZone, setTimeZone] = useState('Asia/Hong_Kong');
   const [classSchedules, setClassSchedules] = useState([]);
+  const [captureMode, setCaptureMode] = useState('screenshot');
 
   const [ipRestrictions, setIpRestrictions] = useState('');
   const [automaticCapture, setAutomaticCapture] = useState(false);
@@ -97,6 +98,7 @@ const ClassManagement = ({ user }) => {
           }
           setAutomaticCapture(classData.automaticCapture || false);
           setAutomaticCombine(classData.automaticCombine || false);
+          setCaptureMode(classData.captureMode || 'screenshot');
         } else {
             alert(`Could not find data for class: ${selectedClass}. It might have been deleted.`);
             setSelectedClass(null); // This will trigger a re-render and run the outer else block.
@@ -114,6 +116,7 @@ const ClassManagement = ({ user }) => {
         setIpRestrictions('');
         setAutomaticCapture(false);
         setAutomaticCombine(false);
+        setCaptureMode('screenshot');
 
       }
     };
@@ -203,6 +206,7 @@ const ClassManagement = ({ user }) => {
           ipRestrictions: ipList,
           automaticCapture: automaticCapture,
           automaticCombine: automaticCombine,
+          captureMode: captureMode,
           afterClassVideoPrompt,
         };
         await updateDoc(classRef, updateData);
@@ -226,6 +230,7 @@ const ClassManagement = ({ user }) => {
           ipRestrictions: ipList,
           automaticCapture: automaticCapture,
           automaticCombine: automaticCombine,
+          captureMode: captureMode,
           afterClassVideoPrompt,
           aiQuota: 10, // Default AI Quota
           aiUsedQuota: 0, // Initialize AI Quota Usage
@@ -340,6 +345,16 @@ const ClassManagement = ({ user }) => {
           <option value="5">5 GB</option>
           <option value="10">10 GB</option>
         </select>
+      </div>
+
+      <div className="form-group">
+        <label>Capture Mode</label>
+        <select value={captureMode} onChange={(e) => setCaptureMode(e.target.value)}>
+          <option value="screenshot">Screenshot Only</option>
+          <option value="webcam">Webcam Only</option>
+          <option value="combined">Screenshot and Webcam</option>
+        </select>
+        <p className="input-hint">Set the default capture mode for students in this class.</p>
       </div>
 
       <ScheduleManager 

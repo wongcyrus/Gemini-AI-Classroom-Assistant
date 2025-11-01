@@ -25,6 +25,7 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
   const [screenshots, setScreenshots] = useState({});
   const [message, setMessage] = useState('');
   const [frameRate, setFrameRate] = useState(5);
+  const [captureMode, setCaptureMode] = useState('screenshot');
   const [maxImageSize, setMaxImageSize] = useState(0.1 * 1024 * 1024);
   const [isCapturing, setIsCapturing] = useState(false);
   const [showNotSharingModal, setShowNotSharingModal] = useState(false);
@@ -70,8 +71,10 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
   const [isAllImagesAnalysisRunning, setIsAllImagesAnalysisRunning] = useState(false);
   const [samplingRate, setSamplingRate] = useState(5);
   const analysisCounterRef = useRef(0);
+  const analysisContextRef = useRef({});
   const studentUidMap = useRef(new Map());
   const [uidToEmailMap, setUidToEmailMap] = useState(new Map());
+  const [displayableAnalysisResults, setDisplayableAnalysisResults] = useState([]);
 
 
 
@@ -139,6 +142,7 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
           const newSize = data.maxImageSize || 0.1 * 1024 * 1024;
           return newSize === prevSize ? prevSize : newSize;
         });
+        setCaptureMode(data.captureMode || 'screenshot');
         setIsCapturing(data.isCapturing || false);
         setStorageQuota(data.storageQuota || 0);
         setAiQuota(data.aiQuota || 0);
@@ -324,6 +328,25 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
     return () => clearInterval(intervalId);
   }, [isAllImagesAnalysisRunning, isCapturing, samplingRate, frameRate, runAllImagesAnalysis, students]);
 
+  useEffect(() => {
+    if (Object.keys(analysisResults).length === 0) {
+      // Don't clear here, as it might wipe results before they are displayed
+      return;
+    }
+
+    const newResults = Object.entries(analysisResults).map(([studentId, result]) => {
+      const email = analysisContextRef.current[studentId]?.email || 'Unknown Student';
+      return {
+        studentId,
+        email,
+        text: result.text,
+        error: result.error,
+      };
+    });
+
+    setDisplayableAnalysisResults(newResults);
+  }, [analysisResults]);
+
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
@@ -402,6 +425,20 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
       }
     }
   }, [classId, frameRate]);
+
+  const handleCaptureModeChange = useCallback(async (e) => {
+    const newMode = e.target.value;
+    setCaptureMode(newMode); // Optimistic update
+    if (classId) {
+      try {
+        const classRef = doc(db, 'classes', classId);
+        await updateDoc(classRef, { captureMode: newMode });
+      } catch (error) {
+        console.error("Error updating capture mode:", error);
+        alert("Failed to update capture mode. Please try again.");
+      }
+    }
+  }, [classId]);
 
   const handleMaxImageSizeChange = async (e) => {
     const newSize = parseFloat(e.target.value);
@@ -482,6 +519,8 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
       }
     }
 
+    setDisplayableAnalysisResults([]); // Clear previous results
+    analysisContextRef.current = screenshotsToAnalyze; // Save context
     await runPerImageAnalysis(screenshotsToAnalyze, editablePromptText);
 
     setShowPromptModal(false);
@@ -518,6 +557,8 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
       }
     }
 
+    setDisplayableAnalysisResults([]); // Clear previous results
+    analysisContextRef.current = screenshotsToAnalyze; // Save context
     await runAllImagesAnalysis(screenshotsToAnalyze, editablePromptText);
 
     setShowPromptModal(false);
@@ -527,11 +568,10 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
   const displayTime = timelineScrubTime ?? (reviewTime ? new Date(reviewTime).getTime() : now.getTime());
 
   const analysisResultItems = useMemo(() => 
-    Object.entries(analysisResults).map(([studentId, result]) => {
-      const email = uidToEmailMap.get(studentId) || 'Unknown Student';
+    displayableAnalysisResults.map(result => {
       return (
-        <li key={studentId}>
-          <strong>{email}:</strong>
+        <li key={result.studentId}>
+          <strong>{result.email}:</strong>
           {result.error ? (
             <p style={{ color: 'red' }}>Error: {result.error}</p>
           ) : (
@@ -539,7 +579,7 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
           )}
         </li>
       );
-    }), [analysisResults, uidToEmailMap]);
+    }), [displayableAnalysisResults]);
 
   return (
     <div className="monitor-view" style={{ display: 'flex', flexDirection: 'row' }}>
@@ -551,6 +591,8 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
         frameRate={frameRate}
         handleFrameRateChange={handleFrameRateChange}
         frameRateOptions={frameRateOptions}
+        captureMode={captureMode}
+        handleCaptureModeChange={handleCaptureModeChange}
         maxImageSize={maxImageSize}
         handleMaxImageSizeChange={handleMaxImageSizeChange}
         maxImageSizeOptions={maxImageSizeOptions}
@@ -677,16 +719,16 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
       </Modal>
       <Modal
         show={showAnalysisResultsModal}
-        onClose={() => setShowAnalysisResultsModal(false)}
-        title="Analysis Results"
+        onClose={() => {
+          setShowAnalysisResultsModal(false);
+          setDisplayableAnalysisResults([]);
+        }}
+        title="Reconstructed Analysis Results"
       >
-        {Object.keys(analysisResults).length > 0 ? (
-          <ul>
-            {analysisResultItems}
-          </ul>
-        ) : (
-          <p>No analysis has been run yet.</p>
-        )}
+        <h3>Reconstructed String from analysisResults:</h3>
+        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', backgroundColor: '#f4f4f4', border: '1px solid #ddd', padding: '10px' }}>
+          {typeof analysisResults === 'object' && analysisResults !== null ? Object.values(analysisResults).join('') : analysisResults}
+        </pre>
       </Modal>
     </div>
   );
