@@ -13,13 +13,16 @@ npm i -g npm-check-updates
 # Note: Add any new node project directories to this list.
 PROJECT_DIRS=(
     "admin"
-    "functions/ai_flows"
-    "functions/auth_triggers"
-    "functions/media_processing"
-    "functions/scheduled_tasks"
-    "functions/storage_triggers"
     "web-app"
 )
+
+# Add all subdirectories of functions that have a package.json
+for dir in functions/*/; do
+    if [ -f "${dir}package.json" ]; then
+        PROJECT_DIRS+=("${dir%/}")
+    fi
+done
+
 
 # 3. Loop through each directory and update packages
 for dir in "${PROJECT_DIRS[@]}"; do
