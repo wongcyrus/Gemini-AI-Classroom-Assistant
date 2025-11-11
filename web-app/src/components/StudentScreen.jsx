@@ -9,7 +9,7 @@ const StudentScreen = ({ student, isSharing, screenshotUrl, onClick }) => {
         <span className={`status-indicator ${isSharing ? 'on' : 'off'}`}></span>
       </div>
       {screenshotUrl ? (
-        <img src={screenshotUrl} alt={`Screenshot from ${student.email}`} />
+        <div className="screenshot-image" style={{ backgroundImage: `url(${screenshotUrl})` }} role="img" aria-label={`Screenshot from ${student.email}`}></div>
       ) : (
         <div className="no-screenshot-placeholder">
           {isSharing ? 'Connecting...' : 'Not Sharing'}

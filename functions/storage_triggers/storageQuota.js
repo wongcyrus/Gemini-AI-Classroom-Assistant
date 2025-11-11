@@ -9,8 +9,7 @@ const adminStorage = getStorage();
 
 // Function to update storage usage when a file is uploaded
 export const updateStorageUsageOnUpload = onObjectFinalized({
-  region: FUNCTION_REGION,
-  cpu: 'gcf_gen1'
+  region: FUNCTION_REGION
 }, async (event) => {
   const filePath = event.data.name;
   const size = event.data.size;
