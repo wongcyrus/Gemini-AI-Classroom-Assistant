@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { CSVLink } from 'react-csv';
 import Modal from './Modal.jsx';
+import { functions } from '../firebase-config.js';
 
 const AttendanceView = ({ classId, selectedLesson, startTime, endTime }) => {
   const [attendanceData, setAttendanceData] = useState([]);
@@ -75,7 +76,6 @@ const AttendanceView = ({ classId, selectedLesson, startTime, endTime }) => {
     if (!selectedLesson || !classId || !startTime || !endTime) return;
 
     setLoadingAttendance(true);
-    const functions = getFunctions();
     const getAttendanceData = httpsCallable(functions, 'getAttendanceData');
     try {
       const result = await getAttendanceData({ classId, startTime, endTime });

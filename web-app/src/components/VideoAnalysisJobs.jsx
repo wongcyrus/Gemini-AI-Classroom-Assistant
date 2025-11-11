@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { collection, query, where, getDocs, documentId, doc, writeBatch, getDoc } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
-import { db } from '../firebase-config';
+import { db, functions } from '../firebase-config';
 import './SharedViews.css';
 
 import usePaginatedQuery from '../hooks/useCollectionQuery';
@@ -158,7 +158,6 @@ const VideoAnalysisJobs = ({ classId, startTime, endTime, filterField }) => {
     setRetryLoading(true);
 
     try {
-        const functions = getFunctions();
         const retryer = httpsCallable(functions, 'retryVideoAnalysisJob');
         
         const result = await retryer({ jobId: selectedAnalysisJob.id });
