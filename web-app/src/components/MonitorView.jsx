@@ -226,8 +226,8 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
           const doc = snapshot.docs[0];
           const screenshotData = doc.data();
           try {
-            const url = await getDownloadURL(ref(storage, screenshotData.imagePath));
-            newScreenshots[studentUid] = { url, timestamp: screenshotData.timestamp, imagePath: screenshotData.imagePath };
+            const downloadURL = await getDownloadURL(ref(storage, screenshotData.imagePath));
+            newScreenshots[studentUid] = { url: downloadURL, timestamp: screenshotData.timestamp, imagePath: screenshotData.imagePath };
           } catch (error) {
             console.error("Error getting download URL for review: ", error);
           }
