@@ -45,21 +45,21 @@ export const recordImageIrregularity = ai.defineTool(
       studentEmail: z.string().describe('The email of the student (denormalized).'),
       title: z.string().describe('The title of the irregularity.'),
       message: z.string().describe('The description of the irregularity.'),
-      imageUrl: z.string().describe('The URL of the image associated with the irregularity.'),
+      screenshotUrl: z.string().describe('The URL of the screen shot image associated with the irregularity.'),
       classId: z.string().describe('The ID of the class.'),
     }),
     outputSchema: z.string(),
   },
   async (input) => {
     console.log('recordImageIrregularity input:', input);
-    const { studentUid, studentEmail, title, message, imageUrl, classId } = input;
+    const { studentUid, studentEmail, title, message, screenshotUrl, classId } = input;
     try {
       const db = getFirestore();
       const irregularitiesRef = db.collection('irregularities');
 
       const pathRegex = /o\/(.*?)\?alt=media/;
-      const match = imageUrl.match(pathRegex);
-      let imagePath = imageUrl;
+      const match = screenshotUrl.match(pathRegex);
+      let imagePath = screenshotUrl;
       if (match && match[1]) {
         imagePath = decodeURIComponent(match[1]);
       }

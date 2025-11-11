@@ -30,8 +30,15 @@ export const analyzeImageFlow = ai.defineFlow(
   async ({ screenshots, prompt, classId }) => {
     const analysisResults = {};
     for (const [studentUid, { url, email }] of Object.entries(screenshots)) {
+
+      const promptText = `This screen belongs to ${email} 
+      screenshotUrl: ${url}. 
+      classId : ${classId}. 
+      studentUid : ${studentUid}. 
+      Also, perform the original analysis based on the user's prompt: 
+      ${prompt}`;
       const fullPrompt = [
-        { text: `This screen belongs to ${email} (image URL: ${url}). The class ID is ${classId}. The student UID is ${studentUid}. Analyze the screen to identify the current task (e.g., 'Question 5', 'Writing introduction'). Call the 'recordScreenshotAnalysis' tool with the identified task. Also, perform the original analysis based on the user's prompt: ${prompt}` },
+        { text: promptText },
         { media: { url } },
       ];
       const media = [{ media: { url } }];
@@ -123,9 +130,19 @@ export const analyzeSingleVideoFlow = ai.defineFlow(
     const startDate = new Date(startTime);
     const endDate = new Date(endTime);
 
-    const promptText = `You are analyzing a video for a student.\nStudent Email: ${studentEmail}\nStudent UID: ${studentUid}\nClass ID: ${classId}\nLesson Start Time: ${startDate.toISOString()}\nLesson End Time: ${endDate.toISOString()}\n\nPlease analyze the video based on the user's prompt: "${prompt}"\n\nWhen you need to record information about the lesson, use the provided 'Lesson Start Time' and 'Lesson End Time' for the 'startTime' and 'endTime' parameters of the tools.\nIf you mention specific moments in the video, please provide timestamps in the format HH:MM:SS.`;
+    const promptText = `You are analyzing a video for a student.
+studentEmail: ${studentEmail}
+studentUid: ${studentUid}
+classId: ${classId}
+Lesson startTime: ${startDate.toISOString()}
+Lesson endTime: ${endDate.toISOString()}
 
-  
+Please analyze the video based on the user's prompt: "${prompt}"
+
+When you need to record information about the lesson, use the provided 'Lesson Start Time' and 'Lesson End Time' for the 'startTime' and 'endTime' parameters of the tools.
+If you mention specific moments in the video, please provide timestamps in the format HH:MM:SS.`;
+
+
     const crypto = await import('crypto');
     const promptHash = crypto.createHash('sha256').update(promptText).digest('hex');
 
@@ -218,7 +235,7 @@ export const analyzeAllImagesFlow = ai.defineFlow(
   async ({ screenshots, prompt, classId }) => {
     const imageParts = Object.entries(screenshots).flatMap(([studentUid, { url, email }]) => (
       [
-        { text: `The following image is the screen shot from ${email} (student UID: ${studentUid}, image URL: ${url}):` },
+        { text: `The following image is the screen shot from ${email} (studentUid: ${studentUid}, screenshotUrl: ${url}):` },
         { media: { url } },
       ]
     ));
