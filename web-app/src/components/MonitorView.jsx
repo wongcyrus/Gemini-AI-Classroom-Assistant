@@ -59,7 +59,7 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
   const [storageQuota, setStorageQuota] = useState(0);
   const [storageUsageScreenShots, setStorageUsageScreenShots] = useState(0);
   const [storageUsageVideos, setStorageUsageVideos] = useState(0);
-  const storageUsageZips = 0;
+  const [storageUsageZips, setStorageUsageZips] = useState(0);
   const [aiQuota, setAiQuota] = useState(0);
   const [aiUsedQuota, setAiUsedQuota] = useState(0);
 
@@ -131,22 +131,10 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
           const newSize = data.maxImageSize || 0.1 * 1024 * 1024;
           return newSize === prevSize ? prevSize : newSize;
         });
-        setIsCapturing(data.isCapturing || false);
-        setStorageQuota(data.storageQuota || 0);
-        setAiQuota(data.aiQuota || 0);
-        setFrameRate(prevRate => {
-          const newRate = data.frameRate || 5;
-          return newRate === prevRate ? prevRate : newRate;
-        });
-        setMaxImageSize(prevSize => {
-          const newSize = data.maxImageSize || 0.1 * 1024 * 1024;
-          return newSize === prevSize ? prevSize : newSize;
-        });
         setCaptureMode(data.captureMode || 'screenshot');
         setIsCapturing(data.isCapturing || false);
         setStorageQuota(data.storageQuota || 0);
         setAiQuota(data.aiQuota || 0);
-        setAiUsedQuota(data.aiUsedQuota || 0);
       } else {
         setClassList([]);
       }
@@ -159,6 +147,7 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
         setStorageUsage(data.storageUsage || 0);
         setStorageUsageScreenShots(data.storageUsageScreenShots || 0);
         setStorageUsageVideos(data.storageUsageVideos || 0);
+        setStorageUsageZips(data.storageUsageZips || 0);
       }
     });
 
@@ -347,7 +336,7 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
     setDisplayableAnalysisResults(newResults);
   }, [analysisResults]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (!message.trim()) return;
 
     const onlineStudents = students.filter(s => s.isSharing);
@@ -379,36 +368,63 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
       console.error("Error sending message to students: ", error);
       alert("An error occurred while sending the message.");
     }
-  };
+  }, [message, students, classId]);
 
-  const handleDownloadAttendance = () => {
-    const uidToStatusMap = new Map(studentStatuses.map(status => [status.id, status]));
+    const handleDownloadAttendance = useCallback(() => {
 
-    const attendanceData = classList.map(uid => {
-      const email = uidToEmailMap.get(uid) || '';
-      const status = uidToStatusMap.get(uid);
-      const isSharing = status ? status.isSharing || false : false;
-      return { email, isSharing };
-    });
+      const uidToStatusMap = new Map(studentStatuses.map(status => [status.id, status]));
 
-    const header = ['Email', 'Sharing Screen'];
-    const rows = attendanceData.map(s => [
-      `"${s.email.replace(/"/g, '""')}"`, // Corrected escaping for double quotes within a double-quoted string
-      s.isSharing
-    ].join(','));
+  
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [header.join(','), ...rows].join('\n');
+      const attendanceData = classList.map(uid => {
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    const now = new Date();
-    const timeString = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}_${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-    link.setAttribute("download", `${classId}_${timeString}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+        const email = uidToEmailMap.get(uid) || '';
+
+        const status = uidToStatusMap.get(uid);
+
+        const isSharing = status ? status.isSharing || false : false;
+
+        return { email, isSharing };
+
+      });
+
+  
+
+      const header = ['Email', 'Sharing Screen'];
+
+      const rows = attendanceData.map(s => [
+
+        `"${s.email.replace(/"/g, '""' )}"`, // Corrected escaping for double quotes within a double-quoted string
+
+        s.isSharing
+
+      ].join(','));
+
+  
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [header.join(','), ...rows].join('\n');
+
+  
+
+      const encodedUri = encodeURI(csvContent);
+
+      const link = document.createElement("a");
+
+      link.setAttribute("href", encodedUri);
+
+      const now = new Date();
+
+      const timeString = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}_${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+
+      link.setAttribute("download", `${classId}_${timeString}.csv`);
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      document.body.removeChild(link);
+
+    }, [studentStatuses, classList, uidToEmailMap, classId]);
 
   const handleFrameRateChange = useCallback(async (e) => {
     const newRate = parseInt(e.target.value, 10);
@@ -440,7 +456,7 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
     }
   }, [classId]);
 
-  const handleMaxImageSizeChange = async (e) => {
+  const handleMaxImageSizeChange = useCallback(async (e) => {
     const newSize = parseFloat(e.target.value);
     if (classId) {
       try {
@@ -451,7 +467,7 @@ const MonitorView = ({ classId, lessons, selectedLesson, startTime, endTime, han
         alert("Failed to update max image size. Please try again.");
       }
     }
-  };
+  }, [classId]);
 
   const toggleCapture = useCallback(async () => {
     if (!classId) return;
